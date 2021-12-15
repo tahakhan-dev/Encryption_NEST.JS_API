@@ -1,11 +1,27 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { TransactionMapper } from '../helpers/mapper/transaction.mapper';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
+import { ClientKafka } from '@nestjs/microservices';
+import 'dotenv/config';
+
+
 
 @Injectable()
-export class TransactionService {
-  create(createTransactionDto: CreateTransactionDto) {
+export class TransactionService implements OnModuleInit, OnModuleDestroy{
+  constructor(
+    @Inject(process.env.KAFKA_NAME) private readonly client: ClientKafka
+    ) {}
+    async onModuleInit() {
+      ['transaction.Kafka'].forEach((key) => this.client.subscribeToResponseOf(`${key}`));
+      await this.client.connect();
+    }
+  
+    async onModuleDestroy() {
+      await this.client.close();
+    }
+    
+  create(createTransactionDto) {
     let transactions = createTransactionDto
     const mapper = new TransactionMapper();
     
@@ -13,11 +29,12 @@ export class TransactionService {
     for (let index = 0; index < transactions.length; index++) {
       const transaction = transactions[index];
       mapped_transaction.push(mapper.mapRecord(transaction, 'test_bank'))
+      this.client.emit('transaction.Kafka', {key:mapped_transaction[index].id, value: mapped_transaction[index]});
     }
     // save
-    console.log(mapped_transaction)
-    return 'This action adds a new transaction';
+    return mapped_transaction;
   }
+
 
   findAll() {
     return `This action returns all transaction`;
