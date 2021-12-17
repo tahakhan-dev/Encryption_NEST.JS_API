@@ -26,10 +26,12 @@ export class TransactionService implements OnModuleInit, OnModuleDestroy{
     const mapper = new TransactionMapper();
     
     let mapped_transaction = []
-    for (let index = 0; index < transactions.length; index++) {
-      const transaction = transactions[index];
+    let transactionLength = transactions.length ?? 1;
+    
+    for (let index = 0; index < transactionLength; index++) {
+      const transaction = transactions[index] ?? transactions;
       mapped_transaction.push(mapper.mapRecord(transaction, 'test_bank'))
-      this.client.emit('transaction.Kafka', {key:mapped_transaction[index].id, value: mapped_transaction[index]});
+      this.client.emit('transactionTesting.Kafka', {key:mapped_transaction[index].id, value: mapped_transaction[index]});
     }
     // save
     return mapped_transaction;
