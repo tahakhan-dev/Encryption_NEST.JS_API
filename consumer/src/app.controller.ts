@@ -11,7 +11,7 @@ export class AppController {
   constructor() {
   }
 
-  @MessagePattern('transaction.Kafka')
+  @MessagePattern('transactionTesting.Kafka')
   readTransactionMessage(@Payload() message: any, @Ctx() context: KafkaContext) {
     const originalMessage = context.getMessage();
     const response =
@@ -25,7 +25,7 @@ export class AppController {
   readAccountMessage(@Payload() message: any, @Ctx() context: KafkaContext) {
     const originalMessage = context.getMessage();
     const response =
-      `Receiving a new message from topic: transaction.Kafka: ` +
+      `Receiving a new message from topic: account.Kafka: ` +
       JSON.stringify(originalMessage.value);
     console.log(response);
     return response;
