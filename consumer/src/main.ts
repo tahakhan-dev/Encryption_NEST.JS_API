@@ -1,6 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import {MicroserviceOptions, Transport} from '@nestjs/microservices';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import * as fs from 'fs';
+
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
@@ -9,7 +11,18 @@ async function bootstrap() {
       transport: Transport.KAFKA,
       options: {
         client: {
-          brokers: ['34.93.111.157:29092'],
+          brokers: [process.env.BROKER_IP],
+          ssl: {
+            key: fs.readFileSync(process.env.KAFKA_SSL_KEY_FILE, 'utf-8'),
+            cert: fs.readFileSync(process.env.KAFKA_SSL_CERT_FILE, 'utf-8'),
+            ca: [fs.readFileSync(process.env.KAFKA_SSL_CA_FILE, 'utf-8')],
+            passphrase: process.env.KAFKA_SSL_PASSPHRASE,
+            rejectUnauthorized: false,
+          },
+        },
+        consumer: {
+          groupId: process.env.CONSUMER_GROUP_ID,
+          // allowAutoTopicCreation: false
         },
       },
     },
