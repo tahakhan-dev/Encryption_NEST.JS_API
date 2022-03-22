@@ -4,10 +4,27 @@ import { AppService } from './app.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import 'dotenv/config';
 import * as fs from 'fs';
-
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { mccMapper } from './entities/mcc_mapper.entity';
+import { mcCodes } from './entities/mcc_codes.entity';
+import { Category } from './entities/category.entity';
 
 @Module({
   imports: [
+    TypeOrmModule.forRoot({
+      type: 'mssql',
+      host: process.env.DBSERVER,
+      port: 1433,
+      username: process.env.DBUSER,
+      password: process.env.DBPASSWORD,
+      database: process.env.DBNAME,
+      entities: [
+        "./dist/**/entities/*.entity{.ts,.js}"
+      ],
+      synchronize: false,
+      options: { useUTC: true },
+    }),
+    TypeOrmModule.forFeature([mccMapper, mcCodes, Category]),
     ClientsModule.register([
       {
         name: process.env.KAFKA_NAME,
@@ -29,7 +46,7 @@ import * as fs from 'fs';
           // },
           consumer: {
             groupId: process.env.CONSUMER_GROUP_ID,
-            allowAutoTopicCreation: false
+            allowAutoTopicCreation: true
           },
         },
       },

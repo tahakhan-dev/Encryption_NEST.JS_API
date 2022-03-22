@@ -31,7 +31,7 @@ import 'dotenv/config';
                         },
                     },
                     producer: {
-                        allowAutoTopicCreation: false
+                        allowAutoTopicCreation: true
                     }
                 },
 

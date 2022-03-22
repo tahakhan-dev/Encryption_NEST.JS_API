@@ -8,7 +8,6 @@ import { StatusCodes } from '../common/enums/status-codes';
 export class TransactionController {
     constructor(
         private readonly service: TransactionService,
-
     ) { }
 
     @Post('/create')
