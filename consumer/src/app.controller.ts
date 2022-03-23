@@ -1,4 +1,6 @@
-import { Controller } from '@nestjs/common';
+
+
+import { Controller, Logger } from '@nestjs/common';
 import {
   Ctx,
   KafkaContext,
@@ -12,6 +14,11 @@ import { Category } from './entities/category.entity';
 import { mcCodes } from './entities/mcc_codes.entity';
 import { mccMapper } from './entities/mcc_mapper.entity';
 import { unCategorizedTransactions } from './entities/unCategorizedTransactions.entity';
+var crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const axios = require('axios').default;
+
+
 @Controller()
 export class AppController {
   constructor(
@@ -22,44 +29,41 @@ export class AppController {
   ) {
   }
 
-  @MessagePattern('data-lake-categorization')
+  @MessagePattern(process.env.KAFKA_TOPIC)
   async readTransactionMessage(@Payload() message: any, @Ctx() context: KafkaContext) {
     try {
       const originalMessage = context.getMessage();
       const payload = JSON.stringify(originalMessage.value);
       const parsePayload = JSON.parse(payload)
-      let MccCategory, mccMaper, categorizetrx, uncategorizeTrx, uncategorizeTrxInstance
+      let MccCategory, mccMaper, categorizetrx, uncategorizeTrx, uncategorizeTrxInstance, consumerToken
+      let VoucherArray = []
 
+      consumerToken = await this.generateToken(parseInt(parsePayload.consumer_id))
       mccMaper = await this.mccMapperRepository.findOne({ mccCode: parsePayload.mcc })
+
       if (mccMaper) {
         MccCategory = await this.CategoryRepository.findOne({ categoryId: mccMaper.categoryId })
-        categorizetrx = this.CategorizeTransaction(parsePayload, MccCategory.name, MccCategory.categoryId)
-        // console.log('=================================categorizetrx===========================');
-        // console.log(categorizetrx);
-        // console.log('=====================================categorizetrx===========================');
+        categorizetrx = await this.CategorizeTransaction(parsePayload, MccCategory.name, MccCategory.categoryId)
+        VoucherArray.push(categorizetrx)
+        let transactionPayload = {
+          consumer_id: parsePayload.consumer_id,
+          device_type: "android",
+          vouchers: JSON.stringify(VoucherArray)
+        }
+        let encryption = await this.encryptText(JSON.stringify(transactionPayload))
+        let response = await this.postTransaction(encryption, consumerToken)
       } else {
-        // MccCategory = await this.CategoryRepository.findOne({ categoryId: 625 })
         uncategorizeTrx = await this.unCategorizeTransaction(parsePayload)
-        console.log('=====================uncategorizeTrx====================================');
-        console.log(uncategorizeTrx);
-        console.log('=====================uncategorizeTrx====================================');
-        // uncategorizeTrxInstance = await this.unCategorizedTransactionsRepository.create(uncategorizeTrx);
-        // console.log('============================uncategorizeTrxInstance===============================');
-        // console.log(uncategorizeTrxInstance);
-        // console.log('============================uncategorizeTrxInstance===============================');
-
-        await this.unCategorizedTransactionsRepository.save(uncategorizeTrx)
+        uncategorizeTrxInstance = await this.unCategorizedTransactionsRepository.create(uncategorizeTrx);
+        await this.unCategorizedTransactionsRepository.save(uncategorizeTrxInstance)
       }
-      // console.log('==========================MccCategory==================================');
-      // console.log(MccCategory);
-      // console.log('==========================MccCategory==================================');
       return payload;
-    } catch (e) {
-      console.log('========================e==============================');
-      console.log(e);
-      console.log('==========================e========================');
+    } catch (error) {
+      console.log('==========================error==============================');
+      console.log(error);
+      console.log('==========================error==============================');
+      return error
     }
-
   }
 
   private async CategorizeTransaction(TransactionDto: any, categoryName: string, categoryId: number) {
@@ -87,14 +91,14 @@ export class AppController {
       vch_trx_place: null,
       tag: null,
       vch_currency: TransactionDto.vch_currency ?? 'PKR',
-      event_name: null,
+      event_name: '',
       event_id: 0,
       vch_updated_on: null,
       account_id: +TransactionDto.from_acccount_number ?? 0,
       category_id: +categoryId,
       vch_no: 0,
       use_case_title: TransactionDto.type ?? '',
-      device_type: null,
+      device_type: 'android',
       vch_image: null,
       vch_quarter: +TransactionDto.trx_quarter ?? 1,
       record_created_on: new Date(),
@@ -103,9 +107,6 @@ export class AppController {
   }
 
   private async unCategorizeTransaction(TransactionDto: any) {
-    console.log('=======================TransactionDto============================');
-    console.log(TransactionDto);
-    console.log('=======================TransactionDto============================');
     return {
       transaction_id: TransactionDto.id,
       consumer_id: +TransactionDto.consumer_id,
@@ -132,4 +133,51 @@ export class AppController {
     }
   }
 
+  private async encryptText(payload: any, key: string = '34BC51A6046A624881701EFD17115CBA') {
+    let ourIv = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x00];
+    const iv = Buffer.from(ourIv);
+    var encoded = await this.encode(new Buffer(payload));
+    var cipher = await crypto.createCipheriv('aes-256-cbc', key, iv);
+    cipher.setAutoPadding(false);
+    var cipheredMsg = Buffer.concat([cipher.update(encoded), cipher.final()]);
+    return cipheredMsg.toString('base64');
+  }
+
+  private async encode(text: any) {
+    var blockSize = 16;
+    var textLength = text.length;
+    var amountToPad = blockSize - (textLength % blockSize);
+    var result = new Buffer(amountToPad);
+    result.fill(amountToPad);
+    return Buffer.concat([text, result]);
+  }
+
+  private async generateToken(consumerId: number) {
+    return jwt.sign({ consumer_id: consumerId }, process.env.JWT_TOKEN_SECRET);
+  }
+
+  private async postTransaction(payload: any, token: string) {
+    console.log('====================payload======================');
+    console.log(payload);
+    console.log('======================payload=======================');
+    console.log('=====================token===========================');
+    console.log(token);
+    console.log('=====================token===========================');
+    await axios({
+      method: 'post',
+      url: 'http://35.238.46.115:1452/transactions/save',
+      headers: {
+        'auth-token': '7513f48395fca348b20cc898dfb3c53ae563da38aaf9393345c449f5df1a4636',
+        'auth-mac': 'leltqtjmdemgquqfqwln',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'authorization': `bearer ${token}`,
+        'version': '3.0.4'
+      },
+      params: {
+        u: payload
+      },
+    }).then(function (response) {
+      console.log(response);
+    });
+  }
 }
