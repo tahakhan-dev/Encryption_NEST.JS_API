@@ -47,11 +47,32 @@ export class TransactionDto {
     running_balance: number;
 
     @IsNotEmpty()
-    fc_amount: string;
+    active: number;
 
     @IsNotEmpty()
-    fc_currency: string;
+    created_on: string;
 
     @IsNotEmpty()
-    fc_rate: string;
+    description: string;
+
+    @IsNotEmpty()
+    vch_currency: string;
+
+    @IsNotEmpty()
+    vchday: number;
+
+    @IsNotEmpty()
+    vchyear: number;
+
+    @IsNotEmpty()
+    vch_date: number;
+
+    @IsNotEmpty()
+    vch_week: number;
+
+    @IsNotEmpty()
+    month: number;
+
+    @IsNotEmpty()
+    trx_quarter: number;
 }

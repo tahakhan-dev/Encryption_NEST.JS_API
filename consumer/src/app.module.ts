@@ -8,10 +8,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { mccMapper } from './entities/mcc_mapper.entity';
 import { mcCodes } from './entities/mcc_codes.entity';
 import { Category } from './entities/category.entity';
+import { unCategorizedTransactions } from './entities/unCategorizedTransactions.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
+      
       type: 'mssql',
       host: process.env.DBSERVER,
       port: 1433,
@@ -21,10 +23,8 @@ import { Category } from './entities/category.entity';
       entities: [
         "./dist/**/entities/*.entity{.ts,.js}"
       ],
-      synchronize: false,
-      options: { useUTC: true },
     }),
-    TypeOrmModule.forFeature([mccMapper, mcCodes, Category]),
+    TypeOrmModule.forFeature([mccMapper, mcCodes, Category,unCategorizedTransactions]),
     ClientsModule.register([
       {
         name: process.env.KAFKA_NAME,
