@@ -3,8 +3,8 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 @Entity('uncategorized_transactions')
 export class unCategorizedTransactions {
 
-    @PrimaryGeneratedColumn()
-    Id: number;
+    @PrimaryGeneratedColumn({name: 'id', type: 'bigint'})
+    id: string;
 
     @Column({ name: 'transaction_id', type: 'bigint', nullable: true })
     transaction_id: number;

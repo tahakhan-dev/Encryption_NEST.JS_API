@@ -44,15 +44,15 @@ export class AppController {
         console.log(uncategorizeTrx);
         console.log('=====================uncategorizeTrx====================================');
         // uncategorizeTrxInstance = await this.unCategorizedTransactionsRepository.create(uncategorizeTrx);
-        console.log('============================uncategorizeTrxInstance===============================');
-        console.log(uncategorizeTrxInstance);
-        console.log('============================uncategorizeTrxInstance===============================');
+        // console.log('============================uncategorizeTrxInstance===============================');
+        // console.log(uncategorizeTrxInstance);
+        // console.log('============================uncategorizeTrxInstance===============================');
 
-        await this.unCategorizedTransactionsRepository.save({transaction_id:22})
+        await this.unCategorizedTransactionsRepository.save(uncategorizeTrx)
       }
-      console.log('==========================MccCategory==================================');
-      console.log(MccCategory);
-      console.log('==========================MccCategory==================================');
+      // console.log('==========================MccCategory==================================');
+      // console.log(MccCategory);
+      // console.log('==========================MccCategory==================================');
       return payload;
     } catch (e) {
       console.log('========================e==============================');
