@@ -34,6 +34,10 @@ export class AppController {
     try {
       const originalMessage = context.getMessage();
       const payload = JSON.stringify(originalMessage.value);
+      console.log('==============================message payload===================================');
+      console.log(payload);
+      console.log('==============================message payload===================================');
+      
       const parsePayload = JSON.parse(payload)
       let MccCategory, mccMaper, categorizetrx, uncategorizeTrx, uncategorize, uncategorizeTrxInstance, response, consumerToken, transactionPayload, encryption
       let VoucherArray = []
@@ -75,7 +79,7 @@ export class AppController {
 
         return uncategorize
       }
-      ;
+      
     } catch (error) {
       console.log('==========================error==============================');
       console.log(error);
