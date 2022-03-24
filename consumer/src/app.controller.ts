@@ -41,6 +41,11 @@ export class AppController {
       consumerToken = await this.generateToken(parseInt(parsePayload.consumer_id))
       mccMaper = await this.mccMapperRepository.findOne({ mccCode: parsePayload.mcc })
 
+      console.log('==========================mccMaper===========================');
+      console.log(mccMaper);
+      console.log('==========================mccMaper===========================');
+
+
       if (mccMaper) {
         MccCategory = await this.CategoryRepository.findOne({ categoryId: mccMaper.categoryId })
         categorizetrx = await this.CategorizeTransaction(parsePayload, MccCategory.name, MccCategory.categoryId)
@@ -50,13 +55,24 @@ export class AppController {
           device_type: "android",
           vouchers: JSON.stringify(VoucherArray)
         }
+        console.log('===========================transactionPayload===========================');
+        console.log(transactionPayload);
+        console.log('===========================transactionPayload===========================');
         encryption = await this.encryptText(JSON.stringify(transactionPayload))
         response = await this.postTransaction(encryption, consumerToken)
         return response
       } else {
         uncategorizeTrx = await this.unCategorizeTransaction(parsePayload)
         uncategorizeTrxInstance = await this.unCategorizedTransactionsRepository.create(uncategorizeTrx);
+        console.log('=======================uncategorizeTrxInstance==================');
+        console.log(uncategorizeTrxInstance);
+        console.log('=======================uncategorizeTrxInstance==================');
+
         uncategorize = await this.unCategorizedTransactionsRepository.save(uncategorizeTrxInstance)
+        console.log('=========================uncategorize==========================');
+        console.log(uncategorize);
+        console.log('=========================uncategorize==========================');
+
         return uncategorize
       }
       ;
