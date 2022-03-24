@@ -9,7 +9,8 @@ import {
 } from '@nestjs/microservices';
 import { InjectRepository } from '@nestjs/typeorm';
 import 'dotenv/config';
-import { Repository } from 'typeorm';
+import { getManager, Repository } from 'typeorm';
+import { Account } from './entities/Account.entity';
 import { Category } from './entities/category.entity';
 import { mcCodes } from './entities/mcc_codes.entity';
 import { mccMapper } from './entities/mcc_mapper.entity';
@@ -25,6 +26,7 @@ export class AppController {
     @InjectRepository(Category) private CategoryRepository: Repository<Category>,
     @InjectRepository(mcCodes) private mcCodesRepository: Repository<mcCodes>,
     @InjectRepository(mccMapper) private mccMapperRepository: Repository<mccMapper>,
+    @InjectRepository(Account) private AccountRepository: Repository<Account>,
     @InjectRepository(unCategorizedTransactions) private unCategorizedTransactionsRepository: Repository<unCategorizedTransactions>
   ) {
   }
@@ -59,6 +61,34 @@ export class AppController {
         uncategorize = await this.unCategorizedTransactionsRepository.save(uncategorizeTrx)
       }
       return payload
+    } catch (error) {
+      console.log('==========================error==============================');
+      console.log(error);
+      console.log('==========================error==============================');
+      return error
+    }
+  }
+
+  @MessagePattern(process.env.KAFKA_TOPIC1)
+  async readAccountMessage(@Payload() message: any, @Ctx() context: KafkaContext) {
+    try {
+      const originalMessage = context.getMessage();
+      const payload = JSON.stringify(originalMessage.value);
+      const parsePayload = JSON.parse(payload)
+      const entityManager = getManager();
+      let mapper, mapperInstance, response
+      mapper = this.accountMapper(parsePayload)
+
+      const rawData = await entityManager.query(`Select * from hk_accounts where account_id=${parseInt(mapper.account_id)} and consumer_id=${parseInt(mapper.consumer_id)}`);
+      if (rawData.length == 1) {
+        await entityManager.query(`UPDATE hk_accounts SET account_id=${parseInt(mapper.account_id)} ,consumer_id=${mapper.consumer_id} ,account_nature=${mapper.account_nature},account_type='${mapper.account_type}',active=${mapper.active},balance_amount=${mapper.balance_amount},box_color='${mapper.box_color}',box_icon='${mapper.box_icon}',description='${mapper.description}',flex1=${mapper.flex1},flex2=${mapper.flex2},flex3=${mapper.flex3},flex4=${mapper.flex4},flex5=${mapper.flex5},flex6=${mapper.flex6},gl_account_no=${mapper.gl_account_no},title='${mapper.title}',opening_balance='${mapper.opening_balance}',is_sync='${mapper.is_sync}',device_type='${mapper.device_type}',account_currency='${mapper.account_currency}',bank_name='${mapper.bank_name}',sys_defined=${mapper.sys_defined},net_amount_total=${mapper.net_amount_total} where account_id=${parseInt(mapper.account_id)} and consumer_id=${parseInt(mapper.consumer_id)}`);
+      } else {
+        mapperInstance = await this.AccountRepository.create(mapper)
+        response = await this.AccountRepository.save(mapper)
+      }
+
+      console.log(response);
+
     } catch (error) {
       console.log('==========================error==============================');
       console.log(error);
@@ -108,6 +138,36 @@ export class AppController {
       party_id: 0,
       sync: 0,
       userId: 0
+    }
+  }
+
+  private accountMapper(AccountDto: any) {
+    return {
+      account_id: +AccountDto.account_id,
+      consumer_id: +AccountDto.consumer_id,
+      account_nature: null,
+      account_type: AccountDto.account_type ?? null,
+      active: AccountDto.active ?? 1,
+      balance_amount: 0.0000,
+      box_color: AccountDto.box_color ?? null,
+      box_icon: AccountDto.box_icon ?? null,
+      description: AccountDto.description ?? null,
+      flex1: null,
+      flex2: null,
+      flex3: null,
+      flex4: null,
+      flex5: null,
+      flex6: null,
+      gl_account_no: null,
+      title: AccountDto.title ?? null,
+      opening_balance: AccountDto.opening_balance ?? 0.0000,
+      record_created_on: new Date(),
+      is_sync: AccountDto.is_sync ?? 1,
+      device_type: 'Andriod',
+      account_currency: AccountDto.account_currency ?? 'PKR',
+      bank_name: AccountDto.bank_name ?? null,
+      sys_defined: AccountDto.sys_defined ?? 1,
+      net_amount_total: AccountDto.net_amount_total ?? 0.0000
     }
   }
 

@@ -9,6 +9,7 @@ import { mccMapper } from './entities/mcc_mapper.entity';
 import { mcCodes } from './entities/mcc_codes.entity';
 import { Category } from './entities/category.entity';
 import { unCategorizedTransactions } from './entities/unCategorizedTransactions.entity';
+import { Account } from './entities/Account.entity';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { unCategorizedTransactions } from './entities/unCategorizedTransactions.
         "./dist/**/entities/*.entity{.ts,.js}"
       ],
     }),
-    TypeOrmModule.forFeature([mccMapper, mcCodes, Category, unCategorizedTransactions]),
+    TypeOrmModule.forFeature([mccMapper,Account, mcCodes, Category, unCategorizedTransactions]),
     ClientsModule.register([
       {
         name: process.env.KAFKA_NAME,
