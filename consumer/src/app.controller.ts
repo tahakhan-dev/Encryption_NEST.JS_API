@@ -35,7 +35,7 @@ export class AppController {
       const originalMessage = context.getMessage();
       const payload = JSON.stringify(originalMessage.value);
       const parsePayload = JSON.parse(payload)
-      let MccCategory, mccMaper, categorizetrx, uncategorizeTrx, uncategorizeTrxInstance, consumerToken
+      let MccCategory, mccMaper, categorizetrx, uncategorizeTrx, uncategorize, uncategorizeTrxInstance, response, consumerToken, transactionPayload, encryption
       let VoucherArray = []
 
       consumerToken = await this.generateToken(parseInt(parsePayload.consumer_id))
@@ -45,19 +45,21 @@ export class AppController {
         MccCategory = await this.CategoryRepository.findOne({ categoryId: mccMaper.categoryId })
         categorizetrx = await this.CategorizeTransaction(parsePayload, MccCategory.name, MccCategory.categoryId)
         VoucherArray.push(categorizetrx)
-        let transactionPayload = {
+        transactionPayload = {
           consumer_id: parsePayload.consumer_id,
           device_type: "android",
           vouchers: JSON.stringify(VoucherArray)
         }
-        let encryption = await this.encryptText(JSON.stringify(transactionPayload))
-        let response = await this.postTransaction(encryption, consumerToken)
+        encryption = await this.encryptText(JSON.stringify(transactionPayload))
+        response = await this.postTransaction(encryption, consumerToken)
+        return response
       } else {
         uncategorizeTrx = await this.unCategorizeTransaction(parsePayload)
         uncategorizeTrxInstance = await this.unCategorizedTransactionsRepository.create(uncategorizeTrx);
-        await this.unCategorizedTransactionsRepository.save(uncategorizeTrxInstance)
+        uncategorize = await this.unCategorizedTransactionsRepository.save(uncategorizeTrxInstance)
+        return uncategorize
       }
-      return payload;
+      ;
     } catch (error) {
       console.log('==========================error==============================');
       console.log(error);
@@ -70,39 +72,43 @@ export class AppController {
     return {
       voucher_id: +TransactionDto.id, //
       consumer_id: +TransactionDto.consumer_id,
-      vch_type: TransactionDto.type ?? '',
-      category_name: categoryName ?? '',
-      account_name: TransactionDto.from_account_title ?? '',
-      vch_amount: +TransactionDto.amount ?? 0,
-      vch_date: TransactionDto.vch_date ?? '',
-      vch_year: +TransactionDto.vchyear ?? 0,
-      vch_month: +TransactionDto.month ?? 0,
+      vchType: TransactionDto.type ?? '',
+      categoryName: categoryName ?? '',
+      accountName: TransactionDto.from_account_title ?? '',
+      vchAmount: +TransactionDto.amount ?? 0,
+      vchDate: TransactionDto.vch_date ?? '',
+      vchYear: +TransactionDto.vchyear ?? 0,
+      month: +TransactionDto.month ?? 0,
       vch_week: +TransactionDto.vch_week ?? 0,
-      vch_day: +TransactionDto.vchday ?? 0,
-      vch_created_on: new Date(),
-      vch_desc: TransactionDto.description ?? '',
-      vch_active: TransactionDto.active ?? 1,
-      vch_ref_no: TransactionDto.ref_no ?? '0',
-      fc_amount: '0',
+      vchDay: +TransactionDto.vchday ?? 0,
+      created_on: new Date(),
+      vchDescription: TransactionDto.description ?? '',
+      active: TransactionDto.active ?? 1,
+      voucherReference: TransactionDto.ref_no ?? '0',
+      fcAmount: '0',
       fc_currency: null,
       fc_rate: null,
-      travel_mode: 0,
+      travelMode: 0,
       travel_model_place: null,
       vch_trx_place: null,
       tag: null,
-      vch_currency: TransactionDto.vch_currency ?? 'PKR',
+      vchCurrency: TransactionDto.vch_currency ?? 'PKR',
       event_name: '',
-      event_id: 0,
+      eventId: 0,
       vch_updated_on: null,
-      account_id: +TransactionDto.from_acccount_number ?? 0,
-      category_id: +categoryId,
+      accountId: +TransactionDto.from_acccount_number ?? 0,
+      categoryId: +categoryId,
       vch_no: 0,
-      use_case_title: TransactionDto.type ?? '',
+      useCase: TransactionDto.type ?? '',
       device_type: 'android',
-      vch_image: null,
+      vchImage: null,
       vch_quarter: +TransactionDto.trx_quarter ?? 1,
       record_created_on: new Date(),
-      is_system: 0,
+      isSystemTransaction: 0,
+      no_serial: 0,
+      party_id: 0,
+      sync: 0,
+      userId: 0
     }
   }
 
@@ -122,7 +128,7 @@ export class AppController {
       running_balance: +TransactionDto.running_balance ?? 0,
       account_id_from_name: TransactionDto.from_account_title ?? null,
       account_id_to_name: TransactionDto.to_account_title ?? null,
-      transaction_reference: TransactionDto.ref_no ?? 0,
+      transaction_reference: TransactionDto.ref_no ?? 1,
       trx_month: +TransactionDto.month ?? 0,
       trx_year: +TransactionDto.vchyear ?? 0,
       trx_day: +TransactionDto.vchday ?? 0,
@@ -133,7 +139,7 @@ export class AppController {
     }
   }
 
-  private async encryptText(payload: any, key: string = '34BC51A6046A624881701EFD17115CBA') {
+  private async encryptText(payload: any, key: string = process.env.ENCRYPT_KEY) {
     let ourIv = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x00];
     const iv = Buffer.from(ourIv);
     var encoded = await this.encode(new Buffer(payload));
@@ -157,27 +163,19 @@ export class AppController {
   }
 
   private async postTransaction(payload: any, token: string) {
-    console.log('====================payload======================');
-    console.log(payload);
-    console.log('======================payload=======================');
-    console.log('=====================token===========================');
-    console.log(token);
-    console.log('=====================token===========================');
     await axios({
       method: 'post',
-      url: 'http://35.238.46.115:1452/transactions/save',
+      url: process.env.TRANSACTION_URL,
       headers: {
-        'auth-token': '7513f48395fca348b20cc898dfb3c53ae563da38aaf9393345c449f5df1a4636',
-        'auth-mac': 'leltqtjmdemgquqfqwln',
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'auth-token': process.env.AUTH_TOKEN,
+        'auth-mac': process.env.AUTH_MAC,
+        'Content-Type': process.env.CONTENT_TYPE,
         'authorization': `bearer ${token}`,
-        'version': '3.0.4'
+        'version': process.env.VERSION
       },
       params: {
         u: payload
       },
-    }).then(function (response) {
-      console.log(response);
-    });
+    })
   }
 }

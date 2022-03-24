@@ -13,10 +13,10 @@ import { unCategorizedTransactions } from './entities/unCategorizedTransactions.
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      
+
       type: 'mssql',
       host: process.env.DBSERVER,
-      port: 1433,
+      port: parseInt(process.env.MSSQL_DB_PORT),
       username: process.env.DBUSER,
       password: process.env.DBPASSWORD,
       database: process.env.DBNAME,
@@ -24,7 +24,7 @@ import { unCategorizedTransactions } from './entities/unCategorizedTransactions.
         "./dist/**/entities/*.entity{.ts,.js}"
       ],
     }),
-    TypeOrmModule.forFeature([mccMapper, mcCodes, Category,unCategorizedTransactions]),
+    TypeOrmModule.forFeature([mccMapper, mcCodes, Category, unCategorizedTransactions]),
     ClientsModule.register([
       {
         name: process.env.KAFKA_NAME,
@@ -41,9 +41,6 @@ import { unCategorizedTransactions } from './entities/unCategorizedTransactions.
               rejectUnauthorized: false,
             },
           },
-          // producer:{
-          //   allowAutoTopicCreation:false
-          // },
           consumer: {
             groupId: process.env.CONSUMER_GROUP_ID,
             allowAutoTopicCreation: true
