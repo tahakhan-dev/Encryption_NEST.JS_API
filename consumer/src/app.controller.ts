@@ -34,9 +34,6 @@ export class AppController {
     try {
       const originalMessage = context.getMessage();
       const payload = JSON.stringify(originalMessage.value);
-      console.log('==============================message payload===================================');
-      console.log(payload);
-      console.log('==============================message payload===================================');
       
       const parsePayload = JSON.parse(payload)
       let MccCategory, mccMaper, categorizetrx, uncategorizeTrx, uncategorize, uncategorizeTrxInstance, response, consumerToken, transactionPayload, encryption
@@ -44,11 +41,6 @@ export class AppController {
 
       consumerToken = await this.generateToken(parseInt(parsePayload.consumer_id))
       mccMaper = await this.mccMapperRepository.findOne({ mccCode: parsePayload.mcc })
-
-      console.log('==========================mccMaper===========================');
-      console.log(mccMaper);
-      console.log('==========================mccMaper===========================');
-
 
       if (mccMaper) {
         MccCategory = await this.CategoryRepository.findOne({ categoryId: mccMaper.categoryId })
@@ -59,27 +51,14 @@ export class AppController {
           device_type: "android",
           vouchers: JSON.stringify(VoucherArray)
         }
-        console.log('===========================transactionPayload===========================');
-        console.log(transactionPayload);
-        console.log('===========================transactionPayload===========================');
         encryption = await this.encryptText(JSON.stringify(transactionPayload))
         response = await this.postTransaction(encryption, consumerToken)
-        return response
       } else {
         uncategorizeTrx = await this.unCategorizeTransaction(parsePayload)
         uncategorizeTrxInstance = await this.unCategorizedTransactionsRepository.create(uncategorizeTrx);
-        console.log('=======================uncategorizeTrxInstance==================');
-        console.log(uncategorizeTrxInstance);
-        console.log('=======================uncategorizeTrxInstance==================');
-
-        uncategorize = await this.unCategorizedTransactionsRepository.save(uncategorizeTrxInstance)
-        console.log('=========================uncategorize==========================');
-        console.log(uncategorize);
-        console.log('=========================uncategorize==========================');
-
-        return uncategorize
+        uncategorize = await this.unCategorizedTransactionsRepository.save(uncategorizeTrx)
       }
-      
+      return payload
     } catch (error) {
       console.log('==========================error==============================');
       console.log(error);

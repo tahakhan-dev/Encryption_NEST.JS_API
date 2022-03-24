@@ -18,15 +18,9 @@ export class TransactionRepository {
 
         if (TransactionDto.length != undefined && TransactionDto.length > 0) {
             for (let element of TransactionDto) {
-                console.log('=======================emitting============================');
-                console.log(JSON.stringify(element));
-                console.log('=======================emitting============================');
                 this.client.emit(process.env.KAFKA_TOPIC, { key: `${element.id}`, value: JSON.stringify(element) })
             }
         } else {
-            console.log('================================JSON.stringify(TransactionDto)===================');
-            console.log(JSON.stringify(TransactionDto));
-            console.log('================================JSON.stringify(TransactionDto)===================');
             this.client.emit(process.env.KAFKA_TOPIC, { key: `${Object.values(TransactionDto)[0]}`, value: JSON.stringify(TransactionDto) })
         }
         return TransactionDto
