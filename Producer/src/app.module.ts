@@ -5,9 +5,17 @@ import { APP_PIPE } from '@nestjs/core';
 import { ConfigModule as EnvConfigModule } from '@nestjs/config';
 import { TransactionModule } from './transaction/transaction.module';
 import { AccountModule } from './Account/Account.module';
+import { ConfigModule } from './config/config.module';
+import { DatabaseModule } from './database/database.module';
+import { entitiesList } from './entities.list';
 
 @Module({
   imports: [EnvConfigModule.forRoot(),
+    //DB config
+    ConfigModule,
+
+  // Module listing
+  DatabaseModule.forRoot({ entities: entitiesList }),
     TransactionModule,
     AccountModule
   ],
