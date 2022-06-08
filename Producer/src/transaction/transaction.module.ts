@@ -11,37 +11,16 @@ import { TransactionCommand } from './commands/transaction.command';
 import * as fs from 'fs';
 import 'dotenv/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Account } from 'src/entities/Account.entity';
+import { Accountss } from 'src/entities/Account.entity';
+import { mccMapper } from 'src/entities/mcc_mapper.entity';
+import { mcCodes } from 'src/entities/mcc_codes.entity';
+import { Category } from 'src/entities/category.entity';
+import { unCategorizedTransactions } from 'src/entities/unCategorizedTransactions.entity';
 
 
 @Module({
     imports: [
-        ClientsModule.register([
-            {
-                name: process.env.KAFKA_NAME,
-                transport: Transport.KAFKA,
-                options: {
-                    client: {
-                        clientId: process.env.KAFKA_CLIENT_ID,
-                        // brokers: [process.env.BROKER_IP],
-                        brokers: ['localhost:29092'],
-                        ssl: false
-                        // ssl: {
-                        //     key: fs.readFileSync(process.env.KAFKA_SSL_KEY_FILE, 'utf-8'),
-                        //     cert: fs.readFileSync(process.env.KAFKA_SSL_CERT_FILE, 'utf-8'),
-                        //     ca: [fs.readFileSync(process.env.KAFKA_SSL_CA_FILE, 'utf-8')],
-                        //     passphrase: process.env.KAFKA_SSL_PASSPHRASE,
-                        //     rejectUnauthorized: false,
-                        // },
-                    },
-                    producer: {
-                        allowAutoTopicCreation: true
-                    }
-                },
-
-            },
-        ]),
-        TypeOrmModule.forFeature([Account]),
+        TypeOrmModule.forFeature([Accountss,mccMapper, mcCodes, Category, unCategorizedTransactions]),
         CqrsModule
     ],
     providers: [
