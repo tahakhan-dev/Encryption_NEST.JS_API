@@ -16,6 +16,6 @@ export class AccountCommandHandler implements ICommandHandler<AccountCommand> {
         const Transactions = this.publisher.mergeObjectContext(
             await this.AccountRepo.createAccount(command.AccountDto),
         );
-        return true;
+        return Transactions;
     }
 }

@@ -27,8 +27,9 @@ export class AccountRepository {
                     mapper = this.accountMapper(element)
 
                     const rawData = await entityManager.query(`Select * from hk_accounts where account_id=${parseInt(mapper.account_id)} and consumer_id=${parseInt(mapper.consumer_id)}`);
+
                     if (rawData.length == 1) {
-                        await entityManager.query(`UPDATE hk_accounts SET account_id=${parseInt(mapper.account_id)} ,consumer_id=${mapper.consumer_id} ,account_nature=${mapper.account_nature},account_type='${mapper.account_type}',active=${mapper.active},balance_amount=${mapper.balance_amount},box_color='${mapper.box_color}',box_icon='${mapper.box_icon}',description='${mapper.description}',flex1=${mapper.flex1},flex2=${mapper.flex2},flex3=${mapper.flex3},flex4=${mapper.flex4},flex5=${mapper.flex5},flex6=${mapper.flex6},gl_account_no=${mapper.gl_account_no},title='${mapper.title}',opening_balance='${mapper.opening_balance}',is_sync='${mapper.is_sync}',device_type='${mapper.device_type}',account_currency='${mapper.account_currency}',bank_name='${mapper.bank_name}',sys_defined=${mapper.sys_defined},net_amount_total=${mapper.net_amount_total} where account_id=${parseInt(mapper.account_id)} and consumer_id=${parseInt(mapper.consumer_id)}`);
+                        await entityManager.query(`UPDATE hk_accounts SET account_nature=${mapper.account_nature},account_type='${mapper.account_type}',active=${mapper.active},balance_amount=${mapper.balance_amount},box_color='${mapper.box_color}',box_icon='${mapper.box_icon}',description='${mapper.description}',flex1=${mapper.flex1},flex2=${mapper.flex2},flex3=${mapper.flex3},flex4=${mapper.flex4},flex5=${mapper.flex5},flex6=${mapper.flex6},gl_account_no=${mapper.gl_account_no},title='${mapper.title}',opening_balance='${mapper.opening_balance}',is_sync='${mapper.is_sync}',device_type='${mapper.device_type}',account_currency='${mapper.account_currency}',bank_name='${mapper.bank_name}',sys_defined=${mapper.sys_defined},net_amount_total=${mapper.net_amount_total} where account_id=${parseInt(mapper.account_id)} and consumer_id=${parseInt(mapper.consumer_id)}`);
                     } else {
                         mapperInstance = await this.AccountRepo.create(mapper)
                         response = await this.AccountRepo.save(mapper)
@@ -42,13 +43,13 @@ export class AccountRepository {
 
                 const rawData = await entityManager.query(`Select * from hk_accounts where account_id=${parseInt(mapper.account_id)} and consumer_id=${parseInt(mapper.consumer_id)}`);
                 if (rawData.length == 1) {
-                    await entityManager.query(`UPDATE hk_accounts SET account_id=${parseInt(mapper.account_id)} ,consumer_id=${mapper.consumer_id} ,account_nature=${mapper.account_nature},account_type='${mapper.account_type}',active=${mapper.active},balance_amount=${mapper.balance_amount},box_color='${mapper.box_color}',box_icon='${mapper.box_icon}',description='${mapper.description}',flex1=${mapper.flex1},flex2=${mapper.flex2},flex3=${mapper.flex3},flex4=${mapper.flex4},flex5=${mapper.flex5},flex6=${mapper.flex6},gl_account_no=${mapper.gl_account_no},title='${mapper.title}',opening_balance='${mapper.opening_balance}',is_sync='${mapper.is_sync}',device_type='${mapper.device_type}',account_currency='${mapper.account_currency}',bank_name='${mapper.bank_name}',sys_defined=${mapper.sys_defined},net_amount_total=${mapper.net_amount_total} where account_id=${parseInt(mapper.account_id)} and consumer_id=${parseInt(mapper.consumer_id)}`);
+                    await entityManager.query(`UPDATE hk_accounts SET account_nature=${mapper.account_nature},account_type='${mapper.account_type}',active=${mapper.active},balance_amount=${mapper.balance_amount},box_color='${mapper.box_color}',box_icon='${mapper.box_icon}',description='${mapper.description}',flex1=${mapper.flex1},flex2=${mapper.flex2},flex3=${mapper.flex3},flex4=${mapper.flex4},flex5=${mapper.flex5},flex6=${mapper.flex6},gl_account_no=${mapper.gl_account_no},title='${mapper.title}',opening_balance='${mapper.opening_balance}',is_sync='${mapper.is_sync}',device_type='${mapper.device_type}',account_currency='${mapper.account_currency}',bank_name='${mapper.bank_name}',sys_defined=${mapper.sys_defined},net_amount_total=${mapper.net_amount_total} where account_id=${parseInt(mapper.account_id)} and consumer_id=${parseInt(mapper.consumer_id)}`);
                 } else {
                     mapperInstance = await this.AccountRepo.create(mapper)
                     response = await this.AccountRepo.save(mapper)
                 }
             }
-            return AccountDto
+            return { isAccount: true }
         } catch (error) {
             return error
         }
@@ -57,8 +58,8 @@ export class AccountRepository {
 
     private accountMapper(AccountDto: any) {
         return {
-            account_id: +AccountDto.account_id,
-            consumer_id: +AccountDto.consumer_id,
+            account_id: parseInt(AccountDto.account_id),
+            consumer_id: parseInt(AccountDto.consumer_id),
             account_nature: null,
             account_type: AccountDto.account_type ?? null,
             active: AccountDto.active ?? 1,
