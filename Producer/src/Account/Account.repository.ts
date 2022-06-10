@@ -5,6 +5,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Accountss } from "src/entities/Account.entity";
 import { getManager, Repository } from "typeorm";
 var crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 
 
 @Injectable()
@@ -104,6 +105,10 @@ export class AccountRepository {
         }
 
         return text.slice(0, text.length - pad);
+    }
+
+    public async verifyToken(token: string, cb){
+        return jwt.verify(token, process.env.JWT_TOKEN_SECRET, {}, cb);
     }
 
 }

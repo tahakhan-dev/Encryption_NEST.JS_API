@@ -1,10 +1,11 @@
-import { Controller, Post, Body, Get, Query, Req, HttpStatus, Res } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, Req, Header, Headers, HttpStatus, Res, HttpException } from '@nestjs/common';
 import { AccountDto } from './dto/Account.dto';
 import { AccountService } from './Account.service';
 import { ResponseWrapper } from 'src/common/enums/response-wrapper';
 import { StatusCodes } from '../common/enums/status-codes';
 import { Response } from 'express';
 import { AccountRepository } from './Account.repository';
+
 
 @Controller('Account')
 export class AccountController {
@@ -14,10 +15,47 @@ export class AccountController {
     ) { }
 
     @Post('/create')
-    async createAccount(@Body() AccountDto, @Res() response: Response): Promise<any> {
+    @Header("Content-Type", "application/x-www-form-urlencoded")
+    async createAccount(@Body() AccountDto, @Res() response: Response, @Headers() headers): Promise<any> {
         try {
 
+            let bearer_token = headers.authorization;
+            bearer_token = bearer_token.split(" ");
+            if (!(bearer_token[0].toLowerCase() === "bearer" && bearer_token[1])) {
+                // no auth token or invalid token!
+                throw new HttpException({
+                    status: HttpStatus.FORBIDDEN,
+                    error: 'Token is Invalid',
+                }, HttpStatus.FORBIDDEN);
+
+
+
+            }
+            let isUserVerified = await this.repo.verifyToken(bearer_token[1], function (err, data) {
+                if (err) {
+                    throw new HttpException({
+                        status: HttpStatus.FORBIDDEN,
+                        error: 'Token is Invalid',
+                    }, HttpStatus.FORBIDDEN);
+                } else {
+                    return data
+                }
+            });
+
+            console.log(isUserVerified.consumer_id);
+
             let decryptDto = await this.repo.decryptText(AccountDto.u, "34BC51A6046A624881701EFD17115CBA")
+
+
+            for (let element of JSON.parse(decryptDto).account) {
+                if (parseInt(element.consumer_id) !== parseInt(isUserVerified.consumer_id)) {
+                    throw new HttpException({
+                        status: HttpStatus.FORBIDDEN,
+                        error: 'Token is Invalid',
+                    }, HttpStatus.FORBIDDEN);
+                }
+            }
+
             let data = await this.service.CreateAccountServiceHandler(JSON.parse(decryptDto).account);
 
             response
@@ -28,10 +66,11 @@ export class AccountController {
                     Message: data.isAccount == true ? 'Account Created' : data.message
                 })
         } catch (error) {
+
             response
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .status(error ? error.status : HttpStatus.INTERNAL_SERVER_ERROR)
                 .send({
-                    StatusCode: StatusCodes.Exception,
+                    StatusCode: error ? error.status : StatusCodes.Exception,
                     Result: null,
                     Message: error.response.error
                 })
