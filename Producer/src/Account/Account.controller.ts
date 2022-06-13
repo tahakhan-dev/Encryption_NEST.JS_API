@@ -20,6 +20,10 @@ export class AccountController {
         try {
 
             let bearer_token = headers.authorization;
+            console.log('=================bearer_token==================');
+            console.log(bearer_token);
+            console.log('=================bearer_token==================');
+
             bearer_token = bearer_token.split(" ");
             if (!(bearer_token[0].toLowerCase() === "bearer" && bearer_token[1])) {
                 // no auth token or invalid token!
@@ -33,6 +37,10 @@ export class AccountController {
             }
             let isUserVerified = await this.repo.verifyToken(bearer_token[1], function (err, data) {
                 if (err) {
+                    console.log('==============verify Token error=======================');
+                    console.log(err);
+                    console.log('==============verify Token error=======================');
+
                     throw new HttpException({
                         status: HttpStatus.FORBIDDEN,
                         error: 'Token is Invalid',
@@ -50,13 +58,13 @@ export class AccountController {
             console.log('===========accountDecrypt================');
             console.log(accountDecrypt);
             console.log('===========accountDecrypt================');
-            
+
 
             for (let element of accountDecrypt) {
                 if (parseInt(element.consumer_id) !== parseInt(isUserVerified.consumer_id)) {
                     throw new HttpException({
                         status: HttpStatus.FORBIDDEN,
-                        error: 'Token is Invalid',
+                        error: 'Token is Invalid or its belong to somenone else',
                     }, HttpStatus.FORBIDDEN);
                 }
             }
@@ -74,7 +82,7 @@ export class AccountController {
             console.log('=================error==================');
             console.log(error);
             console.log('=================error==================');
-            
+
             response
                 .status(error ? error.status : HttpStatus.INTERNAL_SERVER_ERROR)
                 .send({
