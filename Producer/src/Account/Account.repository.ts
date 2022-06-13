@@ -88,44 +88,16 @@ export class AccountRepository {
     }
 
     public async decryptText(payload: any, key: string) {
-        console.log('============== decryptText Payload======================');
-        console.log(payload);
-        console.log(key);
-        console.log('============== decryptText Payload======================');
-        
         
         let ourIv = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x00];
-        console.log(ourIv,'=======ourIv==============');
-        
         const iv = Buffer.from(ourIv);
 
-        console.log('==============iv===================');
-        console.log(iv);
-        console.log('==============iv===================');
-        
-        
-
         var decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-        console.log('=============decipher================');
-        console.log(decipher);
-        console.log('=============decipher================');
-        
-        
         decipher.setAutoPadding(false);
-        console.log('===============decipher2=================');
-        console.log(decipher);
-        console.log('===============decipher2=================');
-        
+
         var deciphered = Buffer.concat([decipher.update(payload, 'base64'), decipher.final()]);
-        console.log('================deciphered3===================');
-        console.log(deciphered);
-        console.log('================deciphered3===================');
-        
         
         deciphered = this.decode(deciphered);
-        console.log(deciphered,'===================deciphered4=============');
-        console.log('===============deciphered.toString();=========',deciphered.toString());
-        
         
         return deciphered.toString();
     }

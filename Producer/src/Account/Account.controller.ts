@@ -56,7 +56,14 @@ export class AccountController {
             console.log('===========req.body=====================');
 
             let decryptDto = await this.repo.decryptText(AccountDto.u, "34BC51A6046A624881701EFD17115CBA")
-            let accountDecrypt = JSON.parse(decryptDto).account;
+            let accountDecrypt = JSON.parse(decryptDto).accounts_array;
+
+            if (accountDecrypt == null) {
+                throw new HttpException({
+                    status: HttpStatus.UNPROCESSABLE_ENTITY,
+                    error: 'There is not account to process',
+                }, HttpStatus.UNPROCESSABLE_ENTITY);
+            }
 
             console.log('===========accountDecrypt================');
             console.log(accountDecrypt);
