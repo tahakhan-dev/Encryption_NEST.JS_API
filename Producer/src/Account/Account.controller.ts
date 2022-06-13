@@ -20,10 +20,6 @@ export class AccountController {
         try {
 
             let bearer_token = headers.authorization;
-            console.log('=================bearer_token==================');
-            console.log(bearer_token);
-            console.log('=================bearer_token==================');
-
             bearer_token = bearer_token.split(" ");
             if (!(bearer_token[0].toLowerCase() === "bearer" && bearer_token[1])) {
                 // no auth token or invalid token!
@@ -37,10 +33,6 @@ export class AccountController {
             }
             let isUserVerified = await this.repo.verifyToken(bearer_token[1], function (err, data) {
                 if (err) {
-                    console.log('==============verify Token error=======================');
-                    console.log(err);
-                    console.log('==============verify Token error=======================');
-
                     throw new HttpException({
                         status: HttpStatus.FORBIDDEN,
                         error: 'Token is Invalid',
@@ -58,31 +50,14 @@ export class AccountController {
             let decryptDto = await this.repo.decryptText(AccountDto.u, "34BC51A6046A624881701EFD17115CBA")
             let accountDecrypt = JSON.parse(decryptDto).accounts_array;
 
-            console.log(typeof accountDecrypt);
-
-
-
-
             if (JSON.parse(accountDecrypt) === null) {
-                console.log('if=-===== account=======');
-
                 throw new HttpException({
                     status: HttpStatus.UNPROCESSABLE_ENTITY,
                     error: 'There is not account to process',
                 }, HttpStatus.UNPROCESSABLE_ENTITY);
             }
 
-            console.log('===========accountDecrypt================');
-            console.log(accountDecrypt);
-            console.log('===========accountDecrypt================');
-
-
             for (let element of JSON.parse(accountDecrypt)) {
-                console.log('======for');
-
-                console.log(element.consumer_id);
-                console.log(isUserVerified.consumer_id);
-
 
                 if (parseInt(element.consumer_id) !== parseInt(isUserVerified.consumer_id)) {
                     throw new HttpException({
