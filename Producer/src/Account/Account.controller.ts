@@ -18,6 +18,9 @@ export class AccountController {
     @Header("Content-Type", "application/x-www-form-urlencoded")
     async createAccount(@Body() AccountDto, @Res() response: Response, @Headers() headers): Promise<any> {
         try {
+            console.log('===========req.body=====================');
+            console.log(AccountDto);
+            console.log('===========req.body=====================');
 
             let bearer_token = headers.authorization;
             bearer_token = bearer_token.split(" ");
@@ -27,10 +30,8 @@ export class AccountController {
                     status: HttpStatus.FORBIDDEN,
                     error: 'Token is Invalid',
                 }, HttpStatus.FORBIDDEN);
-
-
-
             }
+
             let isUserVerified = await this.repo.verifyToken(bearer_token[1], function (err, data) {
                 if (err) {
                     throw new HttpException({
@@ -42,21 +43,9 @@ export class AccountController {
                 }
             });
 
-            console.log(isUserVerified.consumer_id);
-            console.log('===========req.body=====================');
-            console.log(AccountDto);
-            console.log('===========req.body=====================');
-
             let decryptDto = await this.repo.decryptText(AccountDto.u, "34BC51A6046A624881701EFD17115CBA")
             let accountDecrypt = JSON.parse(decryptDto).accounts_array;
 
-            console.log('================accountDecrypt====================');
-            console.log(decryptDto);
-            console.log(accountDecrypt);
-            // console.log(JSON.parse(accountDecrypt));
-            console.log('================accountDecrypt====================');
-            
-            
             if (accountDecrypt == null || accountDecrypt == "null") {
                 throw new HttpException({
                     status: HttpStatus.UNPROCESSABLE_ENTITY,

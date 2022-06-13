@@ -69,9 +69,6 @@ export class Accountss {
     @Column({ name: 'device_type', nullable: true })
     device_type: string;
 
-    @Column({ name: 'account_currency', nullable: true })
-    account_currency: string;
-
     @Column({ name: 'bank_name', nullable: true })
     bank_name: string;
 
