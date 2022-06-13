@@ -59,6 +59,8 @@ export class AccountController {
             let accountDecrypt = JSON.parse(decryptDto).accounts_array;
 
             if (accountDecrypt == null) {
+                console.log('if=-===== account=======');
+                
                 throw new HttpException({
                     status: HttpStatus.UNPROCESSABLE_ENTITY,
                     error: 'There is not account to process',
@@ -71,6 +73,12 @@ export class AccountController {
 
 
             for (let element of accountDecrypt) {
+                console.log('======for');
+                
+                console.log(element.consumer_id);
+                console.log(isUserVerified.consumer_id);
+                
+                
                 if (parseInt(element.consumer_id) !== parseInt(isUserVerified.consumer_id)) {
                     throw new HttpException({
                         status: HttpStatus.FORBIDDEN,
