@@ -51,6 +51,9 @@ export class AccountController {
             });
 
             console.log(isUserVerified.consumer_id);
+            console.log('===========req.body=====================');
+            console.log(AccountDto);
+            console.log('===========req.body=====================');
 
             let decryptDto = await this.repo.decryptText(AccountDto.u, "34BC51A6046A624881701EFD17115CBA")
             let accountDecrypt = JSON.parse(decryptDto).account;
