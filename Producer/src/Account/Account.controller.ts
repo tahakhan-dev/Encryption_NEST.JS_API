@@ -58,7 +58,19 @@ export class AccountController {
             let decryptDto = await this.repo.decryptText(AccountDto.u, "34BC51A6046A624881701EFD17115CBA")
             let accountDecrypt = JSON.parse(decryptDto).accounts_array;
 
-            if (accountDecrypt == null) {
+            console.log(typeof accountDecrypt);
+            
+            
+            if(accountDecrypt == null){
+                console.log('if 24==');
+                
+            }
+            if(accountDecrypt == 'null'){
+                console.log('if====234=');
+                
+            }
+
+            if (accountDecrypt === null) {
                 console.log('if=-===== account=======');
                 
                 throw new HttpException({
