@@ -71,7 +71,10 @@ export class AccountController {
                     Message: data.isAccount == true ? 'Account Created' : data.message
                 })
         } catch (error) {
-
+            console.log('=================error==================');
+            console.log(error);
+            console.log('=================error==================');
+            
             response
                 .status(error ? error.status : HttpStatus.INTERNAL_SERVER_ERROR)
                 .send({
