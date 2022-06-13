@@ -45,9 +45,14 @@ export class AccountController {
             console.log(isUserVerified.consumer_id);
 
             let decryptDto = await this.repo.decryptText(AccountDto.u, "34BC51A6046A624881701EFD17115CBA")
+            let accountDecrypt = JSON.parse(decryptDto).account;
 
+            console.log('===========accountDecrypt================');
+            console.log(accountDecrypt);
+            console.log('===========accountDecrypt================');
+            
 
-            for (let element of JSON.parse(decryptDto).account) {
+            for (let element of accountDecrypt) {
                 if (parseInt(element.consumer_id) !== parseInt(isUserVerified.consumer_id)) {
                     throw new HttpException({
                         status: HttpStatus.FORBIDDEN,
@@ -56,7 +61,7 @@ export class AccountController {
                 }
             }
 
-            let data = await this.service.CreateAccountServiceHandler(JSON.parse(decryptDto).account);
+            let data = await this.service.CreateAccountServiceHandler(accountDecrypt);
 
             response
                 .status(data.isAccount == true ? HttpStatus.CREATED : HttpStatus.INTERNAL_SERVER_ERROR)
