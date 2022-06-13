@@ -50,6 +50,13 @@ export class AccountController {
             let decryptDto = await this.repo.decryptText(AccountDto.u, "34BC51A6046A624881701EFD17115CBA")
             let accountDecrypt = JSON.parse(decryptDto).accounts_array;
 
+            console.log('================accountDecrypt====================');
+            console.log(decryptDto);
+            console.log(accountDecrypt);
+            console.log(JSON.parse(accountDecrypt));
+            console.log('================accountDecrypt====================');
+            
+            
             if (JSON.parse(accountDecrypt) === null) {
                 throw new HttpException({
                     status: HttpStatus.UNPROCESSABLE_ENTITY,
