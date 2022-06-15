@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 
 import { AccountCommandHandler } from './commands.handler';
@@ -6,12 +6,12 @@ import { AccountQueryHandler } from './query.handler';
 import { AccountService } from './Account.service';
 import { AccountRepository } from './Account.repository';
 import { AccountController } from './Account.controller';
-import { ClientsModule, Transport } from '@nestjs/microservices';
 import { AccountCommand } from './commands/Account.command';
-import * as fs from 'fs';
 import 'dotenv/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Accountss } from 'src/entities/Account.entity';
+import { AuthenticationUserMiddleware } from 'src/middlewares/authentication.middleware';
+import { DecryptUserMiddleware } from 'src/middlewares/decrypt.middleware';
 
 
 @Module({
@@ -29,4 +29,8 @@ import { Accountss } from 'src/entities/Account.entity';
     controllers: [AccountController],
     exports: [AccountService],
 })
-export class AccountModule { }
+export class AccountModule { 
+    configure(consumer: MiddlewareConsumer) {
+        consumer.apply(AuthenticationUserMiddleware,DecryptUserMiddleware).forRoutes('*');
+      }
+}

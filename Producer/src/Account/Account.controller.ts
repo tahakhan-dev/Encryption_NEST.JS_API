@@ -1,123 +1,30 @@
 import {
   Controller,
   Post,
-  Body,
-  Get,
-  Query,
   Req,
   Header,
-  Headers,
   HttpStatus,
   Res,
-  HttpException,
 } from '@nestjs/common';
-import { AccountDto } from './dto/Account.dto';
 import { AccountService } from './Account.service';
-import { ResponseWrapper } from 'src/common/enums/response-wrapper';
 import { StatusCodes } from '../common/enums/status-codes';
-import { Response } from 'express';
-import { AccountRepository } from './Account.repository';
-import { validateAccount } from './helper/account-validation';
+import { Response,Request } from 'express';
 
 @Controller('Account')
 export class AccountController {
   constructor(
     private readonly service: AccountService,
-    private readonly repo: AccountRepository,
   ) {}
 
   @Post('/create')
   @Header('Content-Type', 'application/x-www-form-urlencoded')
-  async createAccount(
-    @Body() AccountDto,
-    @Res() response: Response,
-    @Headers() headers,
-  ): Promise<any> {
+  async createAccount(@Res() response: Response,@Req() req: Request): Promise<any> {
     try {
-      console.log('===========req.body=====================');
-      console.log(AccountDto);
-      console.log('===========req.body=====================');
+      let data = await this.service.CreateAccountServiceHandler(req.decryptText);
 
-      let bearer_token = headers.authorization;
-      bearer_token = bearer_token.split(' ');
-      if (!(bearer_token[0].toLowerCase() === 'bearer' && bearer_token[1])) {
-        // no auth token or invalid token!
-        throw new HttpException(
-          {
-            status: HttpStatus.FORBIDDEN,
-            error: 'Token is Invalid',
-          },
-          HttpStatus.FORBIDDEN,
-        );
-      }
-
-      let isUserVerified = await this.repo.verifyToken(
-        bearer_token[1],
-        function (err, data) {
-          if (err) {
-            throw new HttpException(
-              {
-                status: HttpStatus.FORBIDDEN,
-                error: 'Token is Invalid',
-              },
-              HttpStatus.FORBIDDEN,
-            );
-          } else {
-            return data;
-          }
-        },
-      );
-
-      let decryptDto = await this.repo.decryptText(
-        AccountDto.u,
-        '34BC51A6046A624881701EFD17115CBA',
-      );
-      let accountDecrypt = JSON.parse(decryptDto).accounts_array;
-
-      if (accountDecrypt == null || accountDecrypt == 'null') {
-        throw new HttpException(
-          {
-            status: HttpStatus.UNPROCESSABLE_ENTITY,
-            error: 'There is not account to process',
-          },
-          HttpStatus.UNPROCESSABLE_ENTITY,
-        );
-      }
-
-      const validationResult = await validateAccount(accountDecrypt);
-      if (validationResult.error != undefined) {
-        response.statusCode = 400;
-        response.send({ message: validationResult.error });
-        return response;
-      }
-
-      for (let element of accountDecrypt) {
-        if (
-          parseInt(element.consumer_id) !== parseInt(isUserVerified.consumer_id)
-        ) {
-          throw new HttpException(
-            {
-              status: HttpStatus.FORBIDDEN,
-              error: 'Token is Invalid or its belong to somenone else',
-            },
-            HttpStatus.FORBIDDEN,
-          );
-        }
-      }
-
-      let data = await this.service.CreateAccountServiceHandler(accountDecrypt);
-
-      response
-        .status(
-          data.isAccount == true
-            ? HttpStatus.CREATED
-            : HttpStatus.INTERNAL_SERVER_ERROR,
-        )
+      response.status(data.isAccount == true ? HttpStatus.CREATED : HttpStatus.INTERNAL_SERVER_ERROR)
         .send({
-          StatusCode:
-            data.isAccount == true
-              ? StatusCodes.Success
-              : StatusCodes.Exception,
+          StatusCode: data.isAccount == true ? StatusCodes.Success : StatusCodes.Exception,
           Result: data.isAccount == true ? [] : null,
           Message: data.isAccount == true ? 'Account Created' : data.message,
         });

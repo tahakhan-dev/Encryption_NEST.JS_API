@@ -4,9 +4,7 @@ import 'dotenv/config';
 import { InjectRepository } from "@nestjs/typeorm";
 import { Accountss } from "src/entities/Account.entity";
 import { getManager, Repository } from "typeorm";
-var crypto = require('crypto');
-const jwt = require('jsonwebtoken');
-
+import { accountMapper } from "./helper/accountMapper";
 
 @Injectable()
 export class AccountRepository {
@@ -25,7 +23,7 @@ export class AccountRepository {
 
                     const entityManager = getManager();
                     let mapper, mapperInstance, response
-                    mapper = this.accountMapper(element)
+                    mapper = accountMapper(element)
 
                     const rawData = await entityManager.query(`Select * from hk_accounts where account_id=${parseInt(mapper.account_id)} and consumer_id=${parseInt(mapper.consumer_id)}`);
 
@@ -37,10 +35,9 @@ export class AccountRepository {
                     }
                 }
             } else {
-
                 const entityManager = getManager();
                 let mapper, mapperInstance, response
-                mapper = this.accountMapper(AccountDto)
+                mapper = accountMapper(AccountDto)
 
                 const rawData = await entityManager.query(`Select * from hk_accounts where account_id=${parseInt(mapper.account_id)} and consumer_id=${parseInt(mapper.consumer_id)}`);
                 if (rawData.length == 1) {
@@ -54,65 +51,8 @@ export class AccountRepository {
         } catch (error) {
             return error
         }
-
     }
 
-    private accountMapper(AccountDto: any) {
-        return {
-            account_id: parseInt(AccountDto.account_id),
-            consumer_id: parseInt(AccountDto.consumer_id),
-            account_nature: null,
-            account_type: AccountDto.account_type ?? null,
-            active: AccountDto.active ?? 1,
-            balance_amount: 0.0000,
-            box_color: AccountDto.box_color ?? null,
-            box_icon: AccountDto.box_icon ?? null,
-            description: AccountDto.description ?? null,
-            flex1: null,
-            flex2: null,
-            flex3: null,
-            flex4: null,
-            flex5: null,
-            flex6: null,
-            gl_account_no: null,
-            title: AccountDto.title ?? null,
-            opening_balance: parseInt(AccountDto.opening_balance) ?? 0,
-            record_created_on: new Date(),
-            is_sync: AccountDto.is_sync ?? 1,
-            device_type: 'Andriod',
-            bank_name: AccountDto.bank_name ?? null,
-            sys_defined: AccountDto.sys_defined ?? 1,
-            net_amount_total: parseInt(AccountDto.net_amount_total) ?? 0
-        }
-    }
-
-    public async decryptText(payload: any, key: string) {
-
-        let ourIv = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x00];
-        const iv = Buffer.from(ourIv);
-
-        var decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-        decipher.setAutoPadding(false);
-
-        var deciphered = Buffer.concat([decipher.update(payload, 'base64'), decipher.final()]);
-
-        deciphered = this.decode(deciphered);
-
-        return deciphered.toString();
-    }
-
-    private decode(text: any) {
-        var pad = text[text.length - 1];
-
-        if (pad < 1 || pad > 16) {
-            pad = 0;
-        }
-
-        return text.slice(0, text.length - pad);
-    }
-
-    public async verifyToken(token: string, cb) {
-        return jwt.verify(token, process.env.JWT_TOKEN_SECRET, {}, cb);
-    }
+   
 
 }
