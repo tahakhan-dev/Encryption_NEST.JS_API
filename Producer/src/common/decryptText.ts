@@ -10,13 +10,12 @@ export async function decryptText(payload: any, key: string) {
     var decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
     decipher.setAutoPadding(false);
     var deciphered = Buffer.concat([decipher.update(payload, 'base64'), decipher.final()]);
-    deciphered = this.decode(deciphered);
-
+    deciphered = decode(deciphered);
     return deciphered.toString();
 
 }
 
-export async function decode(text: any) {
+export function decode(text: any) {
     var pad = text[text.length - 1];
     if (pad < 1 || pad > 16) {
         pad = 0;

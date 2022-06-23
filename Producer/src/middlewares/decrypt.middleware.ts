@@ -23,7 +23,8 @@ export class DecryptUserMiddleware implements NestMiddleware {
         req.body.u,
         '34BC51A6046A624881701EFD17115CBA',
       );
-      let accountDecrypt = JSON.parse(decryptDto).accounts_array;
+      let converStringify = JSON.parse(decryptDto).accounts_array;
+      let accountDecrypt = JSON.parse(converStringify);
 
       if (accountDecrypt == null || accountDecrypt == 'null') {
         throw new HttpException(

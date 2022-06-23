@@ -31,7 +31,7 @@ export function validateAccount(accounts: AccountDto[]) {
       account.account_type != 'Savings' &&
       account.account_type != 'Person'
     ) {
-      return { error: 'Invalid Account Type', value: undefined };
+      return { error: 'Invalid Account Type or Is Empty', value: undefined };
     }
     if (account.active != 1) {
       return { error: 'Invalid Active Status', value: undefined };
@@ -52,7 +52,7 @@ export function validateAccount(accounts: AccountDto[]) {
       account.account_currency == 'NULL' ||
       account.account_currency == ''
     ) {
-      return { error: 'Invalid Account Currency', value: undefined };
+      return { error: 'Invalid Account Currency or Is Empty', value: undefined };
     }
   }
   return { error: undefined, value: accounts };
