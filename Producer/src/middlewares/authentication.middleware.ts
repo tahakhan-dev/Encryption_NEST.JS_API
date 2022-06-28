@@ -34,6 +34,8 @@ export class AuthenticationUserMiddleware implements NestMiddleware {
       let isUserVerified = await verifyToken(
         bearer_token[1],
         function (err, data) {
+          console.log(data);
+          
           if (err) {
             throw new HttpException(
               {

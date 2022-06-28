@@ -29,7 +29,9 @@ export function validateAccount(accounts: AccountDto[]) {
       account.account_type != 'Bank' &&
       account.account_type != 'Cash' &&
       account.account_type != 'Savings' &&
-      account.account_type != 'Person'
+      account.account_type != 'Person' &&
+      account.account_type != 'Saving' &&
+      account.account_type != 'Current'
     ) {
       return { error: 'Invalid Account Type or Is Empty', value: undefined };
     }
